@@ -466,3 +466,375 @@ After finishing the playlist you should be able to:
 * Deploy AI systems
 * Create production AI applications
 
+
+# LLM Fine-Tuning 
+
+## Overview
+
+This video explains the basic concepts required to understand **LLM Fine-Tuning**. Before learning fine‑tuning, we must understand:
+
+* Model Training
+* Pre‑training
+* Transfer Learning
+* Fine‑Tuning
+* Evolution of NLP models
+
+---
+
+# 1. AI Hierarchy
+
+Artificial Intelligence can be divided into different levels:
+
+AI
+
+* Machine Learning
+* Deep Learning
+
+Deep Learning contains different neural network architectures:
+
+* Artificial Neural Network (ANN)
+* Convolutional Neural Network (CNN)
+* Recurrent Neural Network (RNN)
+* LSTM / GRU
+* Transformer
+
+Applications:
+
+CNN → Computer Vision (images)
+RNN / LSTM → Sequence data (text)
+Transformer → Modern NLP & LLMs
+
+---
+
+# 2. Model Training
+
+Model training means **teaching a model using data**.
+
+Typical ML pipeline:
+
+1. Data Collection
+2. Data Analysis
+3. Data Preprocessing
+4. Model Training
+5. Model Evaluation
+
+A model is essentially a **mathematical function** that learns patterns from data.
+
+---
+
+# 3. Classical NLP Model Training
+
+Earlier NLP models were trained **from scratch for every task**.
+
+Example tasks:
+
+* Text Classification
+* Text Summarization
+* Question Answering
+* Machine Translation
+
+Problem:
+
+Every task required **training a new model from scratch**.
+
+This was:
+
+* expensive
+* slow
+* required lots of data
+
+---
+
+# 4. Start of Fine‑Tuning Era
+
+Fine‑tuning started around **2011** in **Computer Vision**.
+
+It started during the **ImageNet Challenge (ILSVRC)**.
+
+Researchers trained CNN models on a huge dataset and then reused them.
+
+Important CNN models:
+
+* AlexNet
+* VGG
+* ResNet
+* Inception
+* EfficientNet
+
+These models were trained on **ImageNet dataset** with millions of images.
+
+After training once, they could be reused for other tasks.
+
+This idea became **fine‑tuning**.
+
+---
+
+# 5. Pre‑Training
+
+Pre‑training means:
+
+Teach the model **general knowledge first** before solving a specific task.
+
+Example data used for pretraining:
+
+* Books
+* Wikipedia
+* Websites
+* Articles
+* Code repositories
+
+The model trained on this huge dataset becomes a **pre‑trained model**.
+
+Another name:
+
+**Foundation Model**
+
+Examples:
+
+* GPT
+* BERT
+* LLaMA
+* Mistral
+
+---
+
+# 6. Pre‑Training in NLP
+
+In LLMs, models are trained using **language modeling tasks**.
+
+Two main methods:
+
+### 1. Masked Language Modeling (MLM)
+
+Used in **BERT**.
+
+Example:
+
+Sentence:
+
+"The capital of France is [MASK]"
+
+Model predicts:
+
+"Paris"
+
+---
+
+### 2. Causal Language Modeling (CLM)
+
+Used in **GPT**.
+
+The model predicts the **next word**.
+
+Example:
+
+Input:
+
+"Sunny is an AI"
+
+Prediction:
+
+"engineer"
+
+or
+
+"expert"
+
+This method is also called **Auto‑Regressive Modeling**.
+
+Most modern LLMs use this approach.
+
+---
+
+# 7. Why Pre‑Training Works
+
+During pre‑training the model learns:
+
+* grammar
+* sentence structure
+* word relationships
+* semantic meaning
+* patterns in language
+
+Because of this knowledge, the model can perform many tasks.
+
+Examples:
+
+* summarization
+* translation
+* classification
+* question answering
+
+---
+
+# 8. Self‑Supervised Learning
+
+Pre‑training is often called **self‑supervised learning**.
+
+Reason:
+
+The labels are automatically generated from the data.
+
+Example:
+
+Sentence:
+
+"Sunny is AI master"
+
+Training pairs:
+
+Input → Target
+
+"Sunny is" → "AI"
+
+"Sunny is AI" → "master"
+
+So the dataset automatically generates labels.
+
+---
+
+# 9. Transfer Learning
+
+Transfer learning means **using knowledge learned from one task for another task**.
+
+Example:
+
+A model trained on millions of images can be reused for:
+
+* medical image detection
+* face recognition
+* object detection
+
+Instead of training a new model.
+
+---
+
+# 10. Fine‑Tuning
+
+Fine‑tuning means **slightly modifying a pre‑trained model for a specific task**.
+
+Two common approaches:
+
+### Method 1
+
+Change **only the last layer** of the model.
+
+### Method 2
+
+Freeze early layers and train **last few layers**.
+
+Reason:
+
+Early layers learn general patterns.
+
+Later layers learn task‑specific patterns.
+
+---
+
+# 11. Example (CNN Intuition)
+
+CNN layers learn features in stages.
+
+Early layers learn:
+
+* edges
+* curves
+* shapes
+
+Middle layers learn:
+
+* textures
+* object parts
+
+Final layers learn:
+
+* specific objects
+
+Example:
+
+Model trained to detect **humans**.
+
+Primitive features:
+
+* eyes
+* nose
+* mouth
+
+To recognize **specific person (Sunny vs Rahul)** we fine‑tune deeper layers.
+
+---
+
+# 12. Training Pipeline of LLMs
+
+Step 1
+
+Collect massive text data
+
+Step 2
+
+Tokenize text
+
+Step 3
+
+Train transformer using next‑token prediction
+
+Step 4
+
+Create a **pre‑trained foundation model**
+
+Step 5
+
+Apply **Fine‑Tuning** for specific tasks
+
+Step 6
+
+Use **RLHF (Reinforcement Learning from Human Feedback)**
+
+New technique:
+
+**DPO – Direct Preference Optimization**
+
+---
+
+# 13. Example Models Built Using Transformer
+
+* BERT
+* GPT
+* T5
+* LLaMA
+* Mistral
+* Gemini
+
+These models are trained using **transformer architecture**.
+
+---
+
+# 14. Summary
+
+Important concepts:
+
+1. Model Training
+2. Pre‑Training
+3. Foundation Models
+4. Transfer Learning
+5. Fine‑Tuning
+
+Key idea:
+
+Train once on huge data → reuse for many tasks.
+
+This approach made modern **Large Language Models possible**.
+
+---
+
+# Next Topics in the Series
+
+* Transfer Learning (detailed)
+* Fine‑Tuning techniques
+* RAG vs Fine‑Tuning
+* HuggingFace libraries
+* RLHF
+* PEFT / LoRA
+
+---
+
