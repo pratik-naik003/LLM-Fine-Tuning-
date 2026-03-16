@@ -1,13 +1,11 @@
-# LLM Fine-Tuning  Notes 
+# LLM Fine-Tuning  
 
-## 1. Purpose of the Playlist
+## 1.
 
 The instructor is starting a new YouTube playlist on **LLM Fine-Tuning**.
 
 * The series will run for **2–3 months**.
 * Goal: Teach fine-tuning from **basics to advanced industry level**.
-
-The playlist will help you learn:
 
 * Generative AI
 * LLM fine-tuning
