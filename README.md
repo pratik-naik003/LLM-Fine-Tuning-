@@ -3497,4 +3497,417 @@ Advanced Hugging Face topics:
 # End of Notes
 
 
+# Hugging Face – Custom Dataset, Hub Upload, and Tokenization (Simple Notes + Colab Code)
+
+This README explains three important Hugging Face concepts:
+
+1. Creating a Custom Dataset
+2. Uploading Dataset to Hugging Face Hub
+3. Tokenization using Transformers
+
+All examples are written like **Google Colab notebook cells**.
+
+---
+
+# 1 Creating a Custom Dataset
+
+First we create a small dummy dataset.
+
+### Colab Code
+
+```python
+import pandas as pd
+
+# dummy dataset
+
+data = {
+    "text": [
+        "I love machine learning",
+        "Hugging Face is amazing",
+        "Transformers are powerful",
+        "I enjoy learning AI",
+        "Datasets are important",
+        "Deep learning is fascinating"
+    ],
+
+    "label": [1,1,1,1,0,1]
+}
+
+print(data)
+```
+
+---
+
+# 2 Convert Dataset to Pandas DataFrame
+
+```python
+import pandas as pd
+
+
+df = pd.DataFrame(data)
+
+print(df)
+```
+
+Output example
+
+| text                    | label |
+| ----------------------- | ----- |
+| I love machine learning | 1     |
+| Hugging Face is amazing | 1     |
+
+---
+
+# 3 Convert Pandas DataFrame to Hugging Face Dataset
+
+Hugging Face provides the **datasets library**.
+
+Install library
+
+```python
+!pip install datasets
+```
+
+### Convert DataFrame
+
+```python
+from datasets import Dataset
+
+hf_dataset = Dataset.from_pandas(df)
+
+print(hf_dataset)
+```
+
+Output
+
+```
+Dataset({
+ features: ['text','label'],
+ num_rows: 6
+})
+```
+
+Now this dataset is **compatible with Hugging Face ecosystem**.
+
+---
+
+# 4 Convert Label into ClassLabel (Optional)
+
+This step helps Hugging Face understand label classes.
+
+```python
+from datasets import ClassLabel
+
+hf_dataset = hf_dataset.cast_column("label", ClassLabel(names=["negative","positive"]))
+```
+
+---
+
+# 5 Login to Hugging Face
+
+Before uploading dataset we must login.
+
+### Install library
+
+```python
+!pip install huggingface_hub
+```
+
+---
+
+### Notebook Login
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+Paste your **Hugging Face WRITE token**.
+
+---
+
+# 6 Check Login Information
+
+```python
+from huggingface_hub import whoami
+
+print(whoami())
+```
+
+Example output
+
+```
+{
+ "name": "username",
+ "email": "email@example.com",
+ "emailVerified": True
+}
+```
+
+---
+
+# 7 Push Dataset to Hugging Face Hub
+
+Now upload dataset.
+
+```python
+hf_dataset.push_to_hub("username/my_custom_dataset")
+```
+
+This will automatically:
+
+* Create dataset repository
+* Upload dataset
+* Store data in parquet format
+
+You can now see dataset on
+
+```
+https://huggingface.co/datasets/username/my_custom_dataset
+```
+
+---
+
+# 8 What is Tokenization
+
+Tokenization means **splitting text into tokens**.
+
+Example
+
+Sentence
+
+```
+Hello how are you
+```
+
+Tokens
+
+```
+["Hello", "how", "are", "you"]
+```
+
+These tokens are later converted to **numerical IDs**.
+
+---
+
+# 9 Install Transformers Library
+
+```python
+!pip install transformers
+```
+
+---
+
+# 10 Load Tokenizer
+
+```python
+from transformers import AutoTokenizer
+
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+```
+
+---
+
+# 11 Tokenize a Sentence
+
+```python
+sentence = "Hello how are you"
+
+ tokens = tokenizer.tokenize(sentence)
+
+print(tokens)
+```
+
+Example output
+
+```
+['hello','how','are','you']
+```
+
+---
+
+# 12 Convert Tokens into IDs
+
+```python
+encoded = tokenizer(sentence, return_tensors="pt")
+
+print(encoded)
+```
+
+Output contains
+
+```
+input_ids
+token_type_ids
+attention_mask
+```
+
+---
+
+# 13 Understanding Output
+
+### input_ids
+
+Numerical IDs of tokens.
+
+Example
+
+```
+[101,7592,2129,2024,2017,102]
+```
+
+---
+
+### token_type_ids
+
+Used for tasks like **Next Sentence Prediction**.
+
+```
+0 → first sentence
+1 → second sentence
+```
+
+---
+
+### attention_mask
+
+Shows which tokens are real and which are padding.
+
+```
+1 → real token
+0 → padding
+```
+
+---
+
+# 14 Tokenizing Entire Dataset
+
+Define tokenize function
+
+```python
+
+def tokenize_function(example):
+
+    return tokenizer(
+        example["text"],
+        padding="max_length",
+        truncation=True
+    )
+```
+
+Apply on dataset
+
+```python
+encoded_dataset = hf_dataset.map(tokenize_function, batched=True)
+```
+
+Now dataset contains
+
+```
+text
+label
+input_ids
+token_type_ids
+attention_mask
+```
+
+---
+
+# 15 Fast Tokenization
+
+Hugging Face supports **Rust-based fast tokenizers**.
+
+```python
+fast_tokenizer = AutoTokenizer.from_pretrained(
+
+    "bert-base-uncased",
+
+    use_fast=True
+)
+```
+
+---
+
+# 16 Compare Fast vs Slow Tokenization
+
+```python
+import time
+
+text = ["Hugging Face is amazing"] * 100000
+
+# fast tokenizer
+start = time.time()
+
+fast_tokenizer(text, padding=True, truncation=True)
+
+print("Fast tokenizer time:", time.time() - start)
+```
+
+---
+
+### Slow tokenizer
+
+```python
+slow_tokenizer = AutoTokenizer.from_pretrained(
+
+    "bert-base-uncased",
+
+    use_fast=False
+)
+
+start = time.time()
+
+slow_tokenizer(text, padding=True, truncation=True)
+
+print("Slow tokenizer time:", time.time() - start)
+```
+
+Fast tokenizer is much faster because it is implemented in **Rust language**.
+
+---
+
+# 17 Summary
+
+In this README we learned:
+
+• How to create custom dataset
+
+• Convert pandas dataframe to huggingface dataset
+
+• Upload dataset to Hugging Face Hub
+
+• Login with huggingface token
+
+• Tokenization concept
+
+• Convert tokens to numerical IDs
+
+• Fast vs slow tokenizers
+
+These concepts are **very important for LLM fine‑tuning and NLP pipelines**.
+
+---
+
+# Next Concepts
+
+Next Hugging Face topics include:
+
+• Training custom tokenizer
+
+• Sentence embeddings
+
+• AutoModel classes
+
+• Model fine‑tuning
+
+• Evaluation metrics
+
+• Hugging Face pipelines
+
+• Hugging Face + LangChain
+
+
+
 
