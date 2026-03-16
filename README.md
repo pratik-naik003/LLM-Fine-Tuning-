@@ -3909,5 +3909,529 @@ Next Hugging Face topics include:
 • Hugging Face + LangChain
 
 
+# Hugging Face Embeddings, AutoModel, Cosine Similarity, and Sentence Transformers
+
+## Overview
+
+These notes explain how sentence embeddings are created using Hugging Face models. We will cover:
+
+* Tokenization
+* Loading models using `AutoModel`
+* Understanding transformer embeddings
+* Sentence embeddings
+* Cosine similarity
+* Sentence Transformers library
+
+All code examples follow **Google Colab style**.
+
+---
+
+# 1. Installing Libraries (Google Colab)
+
+In Google Colab you must install the required libraries first.
+
+```python
+!pip install transformers
+!pip install sentence-transformers
+!pip install scikit-learn
+```
+
+Then import required modules.
+
+```python
+from transformers import AutoTokenizer, AutoModel
+import torch
+from sklearn.metrics.pairwise import cosine_similarity
+```
+
+---
+
+# 2. Loading Tokenizer
+
+Every transformer model has its **own tokenizer**.
+
+Why?
+
+Because every model is trained on a dataset with its **own vocabulary**.
+
+Example: BERT tokenizer
+
+```python
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+```
+
+This tokenizer converts text into tokens and token IDs.
+
+Example sentence:
+
+```
+My name is Sunny
+```
+
+Tokenization result:
+
+```
+["my", "name", "is", "sunny"]
+```
+
+Then each token is converted into **token IDs** using the vocabulary.
+
+Example:
+
+```
+my -> 2026
+name -> 2171
+is -> 2003
+sunny -> 11559
+```
+
+---
+
+# 3. Loading a Model using AutoModel
+
+Now we load a pretrained BERT model.
+
+```python
+model = AutoModel.from_pretrained("bert-base-uncased")
+```
+
+Important:
+
+`AutoModel` loads **only the base transformer model**.
+
+It does **NOT include any task head** like:
+
+* classification
+* question answering
+* generation
+
+It only produces **embeddings**.
+
+---
+
+# 4. Transformer Processing Pipeline
+
+The complete pipeline is:
+
+```
+Sentence
+   ↓
+Tokenizer
+   ↓
+Token IDs
+   ↓
+Word Embeddings
+   ↓
+Positional Encoding
+   ↓
+Transformer Encoder
+   ↓
+Self Attention
+   ↓
+Feed Forward Network
+   ↓
+Final Embeddings
+```
+
+In BERT there are **12 encoder layers**.
+
+Each layer contains:
+
+* Multi-head self attention
+* Feed-forward neural network
+* Layer normalization
+
+The output of the **last layer** is called the **last hidden state**.
+
+---
+
+# 5. Passing Input to the Model
+
+Example sentence:
+
+```python
+sentence = "Hello how are you"
+```
+
+Tokenize it.
+
+```python
+inputs = tokenizer(sentence, return_tensors="pt")
+```
+
+Run model inference.
+
+```python
+with torch.no_grad():
+    outputs = model(**inputs)
+```
+
+We use `torch.no_grad()` because we are **not training**, only performing inference.
+
+---
+
+# 6. Understanding Model Output
+
+Get the last hidden state.
+
+```python
+last_hidden_state = outputs.last_hidden_state
+```
+
+Check its shape.
+
+```python
+print(last_hidden_state.shape)
+```
+
+Example output:
+
+```
+torch.Size([1, 8, 768])
+```
+
+Meaning:
+
+```
+1 -> number of sentences
+8 -> number of tokens
+768 -> embedding dimension
+```
+
+So each token is represented by a **768 dimensional vector**.
+
+---
+
+# 7. Creating Sentence Embedding
+
+We combine token embeddings to create a **sentence embedding**.
+
+Common methods:
+
+* Mean pooling
+* Max pooling
+
+Most common method is **mean pooling**.
+
+```python
+sentence_embedding = last_hidden_state.mean(dim=1)
+```
+
+Check size.
+
+```python
+print(sentence_embedding.shape)
+```
+
+Output:
+
+```
+[1, 768]
+```
+
+Now the **entire sentence is represented as a 768‑dimensional vector**.
+
+---
+
+# 8. Cosine Similarity Between Sentences
+
+Cosine similarity measures **semantic similarity between vectors**.
+
+Formula intuition:
+
+```
+Similarity = cosine(angle between vectors)
+```
+
+Value range:
+
+```
+1 → identical meaning
+0 → unrelated
+-1 → opposite meaning
+```
+
+Example sentences:
+
+```
+Hello how are you
+Hi how do you do
+```
+
+Code:
+
+```python
+sent1 = "Hello how are you"
+sent2 = "Hi how do you do"
+
+inputs1 = tokenizer(sent1, return_tensors="pt")
+inputs2 = tokenizer(sent2, return_tensors="pt")
+
+with torch.no_grad():
+    emb1 = model(**inputs1).last_hidden_state.mean(dim=1)
+    emb2 = model(**inputs2).last_hidden_state.mean(dim=1)
+
+similarity = cosine_similarity(emb1, emb2)
+
+print(similarity)
+```
+
+Example result:
+
+```
+0.88
+```
+
+Meaning the sentences are **88% similar**.
+
+---
+
+# 9. Sentence Transformers Library
+
+Hugging Face also provides a library specifically for sentence embeddings.
+
+Library:
+
+```
+sentence-transformers
+```
+
+Install in Colab:
+
+```python
+!pip install sentence-transformers
+```
+
+Import library.
+
+```python
+from sentence_transformers import SentenceTransformer
+```
+
+---
+
+# 10. Loading Sentence Transformer Model
+
+Example model:
+
+```
+all-MiniLM-L6-v2
+```
+
+Load model.
+
+```python
+model = SentenceTransformer('all-MiniLM-L6-v2')
+```
+
+This model is optimized for **sentence embeddings**.
+
+---
+
+# 11. Encoding Sentences
+
+Example sentences:
+
+```python
+sentence1 = "Hello how are you"
+sentence2 = "Hi how do you do"
+```
+
+Convert sentences into embeddings.
+
+```python
+embedding1 = model.encode(sentence1)
+embedding2 = model.encode(sentence2)
+```
+
+Check vector length.
+
+```python
+print(len(embedding1))
+```
+
+Output:
+
+```
+384
+```
+
+This model produces **384‑dimensional embeddings**.
+
+---
+
+# 12. Compute Similarity
+
+```python
+similarity = cosine_similarity([embedding1], [embedding2])
+
+print(similarity)
+```
+
+Example output:
+
+```
+0.51
+```
+
+Meaning **51% similarity**.
+
+---
+
+# 13. Why Similarity Changes
+
+Large models capture more context.
+
+Example comparison:
+
+| Model     | Embedding Size | Quality                 |
+| --------- | -------------- | ----------------------- |
+| BERT base | 768            | Higher accuracy         |
+| MiniLM    | 384            | Faster but less context |
+
+Large embeddings capture more semantic information.
+
+---
+
+# 14. Hugging Face Auto Classes
+
+Hugging Face provides multiple **Auto classes**.
+
+| Class                              | Purpose                      |
+| ---------------------------------- | ---------------------------- |
+| AutoModel                          | Base model (embeddings only) |
+| AutoModelForMaskedLM               | Mask word prediction         |
+| AutoModelForSequenceClassification | Text classification          |
+| AutoModelForTokenClassification    | Named entity recognition     |
+| AutoModelForQuestionAnswering      | QA systems                   |
+| AutoModelForCausalLM               | Text generation              |
+
+Example classification model.
+
+```python
+from transformers import AutoModelForSequenceClassification
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    "distilbert-base-uncased-finetuned-sst-2-english"
+)
+```
+
+This model includes a **classification head**.
+
+---
+
+# 15. Example Sentiment Classification
+
+```python
+sentence = "I am very happy"
+
+inputs = tokenizer(sentence, return_tensors="pt")
+
+with torch.no_grad():
+    outputs = model(**inputs)
+
+logits = outputs.logits
+prediction = torch.argmax(logits)
+
+print(prediction)
+```
+
+Output:
+
+```
+1
+```
+
+Meaning:
+
+```
+1 → positive
+0 → negative
+```
+
+---
+
+# 16. AutoConfig
+
+`AutoConfig` loads model configuration.
+
+```python
+from transformers import AutoConfig
+
+config = AutoConfig.from_pretrained("bert-base-uncased")
+
+print(config)
+```
+
+Important parameters:
+
+* hidden_size
+* num_attention_heads
+* vocab_size
+
+Example:
+
+```python
+print(config.hidden_size)
+```
+
+Output:
+
+```
+768
+```
+
+---
+
+# 17. Changing Configuration
+
+Example: change number of labels.
+
+```python
+config.num_labels = 5
+```
+
+Then load model with this configuration.
+
+```python
+model = AutoModelForSequenceClassification.from_config(config)
+```
+
+Now the model supports **5 classes instead of 2**.
+
+---
+
+# Summary
+
+Key ideas:
+
+* Tokenizer converts text → tokens
+* Tokens → token IDs
+* Transformer processes tokens
+* Output → embeddings
+* Sentence embeddings represent semantic meaning
+* Cosine similarity compares embeddings
+
+Sentence Transformers simplify this entire process.
+
+---
+
+# Practical Uses
+
+Sentence embeddings are used for:
+
+* Semantic search
+* Chatbots
+* Recommendation systems
+* Document similarity
+* Duplicate detection
+* Question answering systems
+
+---
+
+End of Notes
+
+
+
 
 
